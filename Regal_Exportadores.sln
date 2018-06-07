@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Simphony", "9700\Simphony.csproj", "{1EFC3482-97F0-4283-8782-0152C7F81473}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Utils\Utils.csproj", "{3016E774-38B7-4698-AA54-C77763878F73}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1EFC3482-97F0-4283-8782-0152C7F81473}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EFC3482-97F0-4283-8782-0152C7F81473}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EFC3482-97F0-4283-8782-0152C7F81473}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EFC3482-97F0-4283-8782-0152C7F81473}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3016E774-38B7-4698-AA54-C77763878F73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3016E774-38B7-4698-AA54-C77763878F73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3016E774-38B7-4698-AA54-C77763878F73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3016E774-38B7-4698-AA54-C77763878F73}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
