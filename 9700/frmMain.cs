@@ -66,18 +66,14 @@ namespace _Simphony
                     var command = connection.CreateCommand();
                     connection.CreateCommand();
 
-                    var query = "SELECT CASE CD.REVCTRID WHEN 1 THEN 'FATTORIA' WHEN 22 THEN 'QUEEN' WHEN 23 THEN 'ROOMSERVICE' WHEN 24 THEN 'BANQUETES'" +
+                    var query = "SELECT CASE CD.REVCTRID WHEN 1 THEN 'FATTORIA' WHEN 22 THEN 'QUEEN' WHEN 23 THEN 'ROOMSERVICE' WHEN 24 THEN 'BANQUETES' " +
                                 "WHEN 25 THEN 'MEDPRO' WHEN 46 THEN 'CAFETERIA' ELSE 'NODEFINIDO' END REVCENT, CD.CHECKID, CONVERT(VARCHAR(10), CD.DETAILPOSTINGTIME, 105), " +
                                 "CD.CHECKDETAILID, CD.DETAILINDEX, CD.DETAILTYPE, CD.EMPLOYEEID, CONVERT(INT, ROUND(ISNULL(CD.TOTAL, 0), 0)) TOTAL, " +
-                                "CONVERT(INT, ROUND(ISNULL(CD.TOTAL, 0) / 1.19, 0)) NETO, CONVERT(INT, ROUND((ISNULL(CD.TOTAL, 0) / 1.19) * 0.19, 0)) IVA, ST.STRINGTEXT DESCRIPCION, " +
-                                "TMDET.CHARGETIP PROPINA, TMDET.TendMedID, CASE TMDET.TENDMEDID " +
-                                "WHEN 111 THEN '11-04-015' WHEN 128 THEN '11-04-015' " +
-                                "WHEN 110 THEN '11-04-016' WHEN 127 THEN '11-04-016' WHEN 109 THEN '11-04-017' WHEN 126 THEN '11-04-017' " +
-                                "WHEN 108 THEN '11-04-018' WHEN 125 THEN '11-04-018' WHEN 112 THEN '11-04-018' " +
-                                "WHEN 129 THEN '11-04-018' WHEN 97 THEN '11-01-009' WHEN 130 THEN '11-01-009' WHEN 131 THEN '11-01-007' " +
-                                "WHEN 103 THEN '11-01-007' ELSE 'CUENTANODEFINIDA' END CUENTA, ISNULL(UPPER(EMP.USERNAME), '') USERNAME FROM CHECK_DETAIL CD INNER JOIN TENDER_MEDIA_DETAIL TMDET ON TMDET.CHECKDETAILID = CD.CHECKDETAILID " +
-                                "INNER JOIN TENDER_MEDIA TM ON TM.TENDMEDID = TMDET.TENDMEDID INNER JOIN STRING_TABLE ST ON ST.STRINGNUMBERID = TM.NAMEID " +
-                                "INNER JOIN EMPLOYEE EMP ON EMP.EMPLOYEEID = CD.EMPLOYEEID " +
+                                "CONVERT(INT, ROUND((ISNULL(CD.TOTAL, 0) - TMDET.CHARGETIP) / 1.19, 0)) NETO, CONVERT(INT, ROUND(((ISNULL(CD.TOTAL, 0) - TMDET.CHARGETIP) / 1.19) * 0.19, 0)) IVA, ST.STRINGTEXT DESCRIPCION, " +
+                                "TMDET.CHARGETIP PROPINA, TMDET.TendMedID, CASE TMDET.TENDMEDID WHEN 111 THEN '11-04-015' WHEN 128 THEN '11-04-015' WHEN 110 THEN '11-04-016' WHEN 127 THEN '11-04-016' WHEN 109 THEN '11-04-017' WHEN 126 THEN '11-04-017' " +
+                                "WHEN 108 THEN '11-04-018' WHEN 125 THEN '11-04-018' WHEN 112 THEN '11-04-018' WHEN 129 THEN '11-04-018' WHEN 97 THEN '11-01-009' WHEN 130 THEN '11-01-009' WHEN 131 THEN '11-01-007' " +
+                                "WHEN 103 THEN '11-01-007' ELSE 'CUENTANODEFINIDA' END CUENTA, ISNULL(UPPER(EMP.CHECKNAME), '') USERNAME FROM CHECK_DETAIL CD INNER JOIN TENDER_MEDIA_DETAIL TMDET ON TMDET.CHECKDETAILID = CD.CHECKDETAILID " +
+                                "INNER JOIN TENDER_MEDIA TM ON TM.TENDMEDID = TMDET.TENDMEDID INNER JOIN STRING_TABLE ST ON ST.STRINGNUMBERID = TM.NAMEID INNER JOIN EMPLOYEE EMP ON EMP.EMPLOYEEID = CD.EMPLOYEEID " +
                                 " WHERE CONVERT(VARCHAR(10), CD.DETAILPOSTINGTIME, 105) " +
                                 "= '" + dtpDesde.Value.ToString("dd-MM-yyyy") + "' AND TMDET.TENDMEDID IN (97, 98, 103, 108, 109, 110, 111, 112, 125, 126, 127, 128, 129, 130, 131)";
 
@@ -117,17 +113,18 @@ namespace _Simphony
 
                     if (i == 0)
                         _log.W("No hay datos para procesar en la fecha seleccionada.");
-
+                    
                     pbProgreso.Visible = true;
                     pbProgreso.Step = 1;
                     pbProgreso.Value = 0;
                     pbProgreso.Maximum = listaHeader.Count;
 
                     reader.Close();
+                    
                     foreach (var h in listaHeader)
                     {
                         var nroBoleta = string.Empty;
-                        var userName = string.Empty;
+                        var glosa = string.Empty;
                         pbProgreso.Value += 1;
 
                         // Descuentos ---------------------------------------------------------->
@@ -144,10 +141,11 @@ namespace _Simphony
 
                         while (subReaderDisc.Read())
                         {
+                            var totalDescSinIva = subReaderDisc == null ? 0 : Convert.ToInt32(Math.Round(Convert.ToInt32(subReaderDisc[7]) / 1.19));
                             var bvedd = new BoletaVenta()
                             {
                                 Cuenta = "22-22-222",
-                                Debe = Math.Abs(Convert.ToInt32(subReaderDisc[7])),
+                                Debe = totalDescSinIva,
                                 Haber = 0,
                                 Glosa = h.Glosa,
                                 Fecha = h.Fecha,
@@ -163,44 +161,46 @@ namespace _Simphony
 
                             if (bvedd.Debe > 0) TxtFormatter.PrintDetailElements(path, bvedd, i);
                         }
-                        subReaderDisc.Close();
 
+                        subReaderDisc.Close();
                         // Detalle ------------------------------------------------------------->
                         var sqlDetail =
-                            "SELECT CD.REVCTRID, CD.CHECKID, CD.CHECKDETAILID, CD.DETAILINDEX, CD.DETAILTYPE, CD.REVCTRID, " +
-                            "CD.EMPLOYEEID, ISNULL(CD.TOTAL, 0), ST.STRINGTEXT, CASE WHEN MIDEF.MENUITEMCLASSOBJNUM BETWEEN 2000 AND 2010 THEN '031' " +
-                            "WHEN MIDEF.MENUITEMCLASSOBJNUM BETWEEN 3000 AND 3001 THEN '062' WHEN MIDEF.MENUITEMCLASSOBJNUM BETWEEN 7000 AND 7006 THEN '031' ELSE '022' " +
-                            "END CCOSTO, PJL.JOURNALTEXT FROM CHECK_DETAIL CD INNER JOIN MENU_ITEM_DETAIL MIDET ON MIDET.CHECKDETAILID = CD.CHECKDETAILID " +
-                            "INNER JOIN MENU_ITEM_DEFINITION MIDEF ON MIDEF.MENUITEMDEFID = MIDET.MENUITEMDEFID INNER JOIN STRING_TABLE ST ON ST.STRINGNUMBERID = MIDEF.NAME1ID " +
-                            "INNER JOIN CHECKS C ON C.CHECKID = CD.CHECKID INNER JOIN POS_JOURNAL_LOG PJL ON PJL.CHECKNUM = C.CHECKNUMBER " +
-                            "WHERE CD.CHECKID = '" + h.NroBoleta + "' AND DETAILTYPE <> 15 AND PJL.TYPE = 1";
+                            "SELECT CD.REVCTRID, CD.CHECKID, CD.CHECKDETAILID, CD.DETAILINDEX, CD.DETAILTYPE, CD.REVCTRID, CD.EMPLOYEEID, ISNULL(CD.TOTAL, 0), ST.STRINGTEXT, " +
+                            "CASE WHEN MIDEF.MENUITEMCLASSOBJNUM BETWEEN 2000 AND 2010 THEN '031' WHEN MIDEF.MENUITEMCLASSOBJNUM BETWEEN 3000 AND 3001 THEN '062' " +
+                            "WHEN MIDEF.MENUITEMCLASSOBJNUM BETWEEN 7000 AND 7006 THEN '031' ELSE '022' END CCOSTO, J.JOURNALTEXT FROM CHECK_DETAIL CD " +
+                            "INNER JOIN MENU_ITEM_DETAIL MIDET ON MIDET.CHECKDETAILID = CD.CHECKDETAILID INNER JOIN MENU_ITEM_DEFINITION MIDEF ON MIDEF.MENUITEMDEFID = MIDET.MENUITEMDEFID " +
+                            "INNER JOIN STRING_TABLE ST ON ST.STRINGNUMBERID = MIDEF.NAME1ID INNER JOIN CHECKS C ON C.CHECKID = CD.CHECKID OUTER APPLY (SELECT TOP 1 * FROM POS_JOURNAL_LOG " +
+                            "WHERE TYPE = 1 AND CHECKNUM = C.CHECKNUMBER ORDER BY POSJOURNALLOGID) J WHERE CD.CHECKID = '" + h.NroBoleta + "' AND DETAILTYPE <> 15";
 
                         var subCommand = connection.CreateCommand();
                         subCommand.CommandText = sqlDetail;
                         var subReaderChecks = subCommand.ExecuteReader();
-
+                        
                         while (subReaderChecks.Read())
                         {
+                            _log.W("1");
                             var journalText = subReaderChecks[10].ToString();
                             var journalTextItems = journalText.Split('\n').ToList();
 
-                            //MessageBox.Show("Se graba log para mostrar journalTextItems");
+                            _log.W("2");
                             foreach (var linea in journalTextItems)
                             {
                                 _log.W(linea);
                             }
-
+                            _log.W("3");
                             var nroBoletaIndex = journalTextItems.FindIndex(s => s.ToUpper().Contains("NROBOLELEC"));
                             var codAutTransbankIndex = journalTextItems.FindIndex(s => s.ToUpper().Contains("CODAUTTBK"));
                             var totalSinIva = Convert.ToInt32(Math.Round(Convert.ToInt32(subReaderChecks[7]) / 1.19));
-                            nroBoleta = nroBoletaIndex > 0 ? journalTextItems[nroBoletaIndex + 1].Trim() : string.Empty;
 
+                            _log.W("4");
+                            nroBoleta = nroBoletaIndex > 0 ? journalTextItems[nroBoletaIndex + 1].Trim() : string.Empty;
+                            glosa = "BL/" + nroBoleta + " " + h.Glosa.Split(' ')[1];
                             var bved = new BoletaVenta()
                             {
                                 Cuenta = "40-01-001",
                                 Debe = 0,
                                 Haber = totalSinIva,
-                                Glosa = h.Glosa,
+                                Glosa = glosa,
                                 Fecha = h.Fecha,
                                 NroBoleta = nroBoleta,
                                 CodAutTbnk = codAutTransbankIndex > 0 ? journalTextItems[codAutTransbankIndex + 1].Trim() : string.Empty,
@@ -211,7 +211,7 @@ namespace _Simphony
                                 MontoNeto = 0,
                                 Iva = 0
                             };
-
+                            _log.W("5");
                             if (bved.Haber > 0)
                             {
                                 TxtFormatter.PrintDetailElements(path, bved, i);
@@ -220,7 +220,7 @@ namespace _Simphony
                                     Cuenta = "21-06-001",
                                     Debe = 0,
                                     Haber = Math.Abs(Convert.ToInt32(subReaderChecks[7])) - totalSinIva,
-                                    Glosa = h.Glosa,
+                                    Glosa = glosa,
                                     Fecha = h.Fecha,
                                     NroBoleta = nroBoleta,
                                     CodAutTbnk = codAutTransbankIndex > 0 ? journalTextItems[codAutTransbankIndex + 1].Trim() : string.Empty,
@@ -232,6 +232,7 @@ namespace _Simphony
                                     Iva = 0
                                 };
                             }
+                            _log.W("6");
                         }
 
                         // IVA ----------------------------------------------------------------->
@@ -242,7 +243,7 @@ namespace _Simphony
                                 Cuenta = "21-06-001",
                                 Debe = 0,
                                 Haber = h.Iva,
-                                Glosa = h.Glosa,
+                                Glosa = glosa,
                                 Fecha = h.Fecha,
                                 NroBoleta = nroBoleta,
                                 CodAutTbnk = "",
@@ -256,6 +257,7 @@ namespace _Simphony
                             };
                             TxtFormatter.PrintDetailElements(path, bvedi, i);
                         }
+
                         // Propinas ------------------------------------------------------------>
                         if (h.Propina > 0)
                         {
@@ -264,7 +266,7 @@ namespace _Simphony
                                 Cuenta = "40-02-005",
                                 Debe = 0,
                                 Haber = h.Propina,
-                                Glosa = h.Glosa,
+                                Glosa = glosa,
                                 Fecha = h.Fecha,
                                 NroBoleta = nroBoleta,
                                 CodAutTbnk = "",
@@ -279,8 +281,10 @@ namespace _Simphony
 
                             TxtFormatter.PrintDetailElements(path, bvedp, i);
                         }
+
                         subReaderChecks.Close();
                         h.NroBoleta = nroBoleta;
+                        h.Glosa = glosa;
                         TxtFormatter.PrintHeaderElements(path, h, i);
                     }
 

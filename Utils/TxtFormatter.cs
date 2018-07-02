@@ -35,17 +35,17 @@ namespace Utils
         {
             using (var outputFile = new StreamWriter(filePath, append: true))
             {
-                outputFile.Write(bv.Cuenta + ";");
-                outputFile.Write(bv.Debe + ";");
-                outputFile.Write(bv.Haber + ";");
+                outputFile.Write(bv.Cuenta + ";");      //ok
+                outputFile.Write(bv.Debe + ";");        //ok
+                outputFile.Write(bv.Haber + ";");       //ok
                 outputFile.Write(bv.Glosa + ";");
-                outputFile.Write(bv.Fecha + ";");
-                outputFile.Write(bv.NroBoleta + ";");
-                outputFile.Write(bv.Username + ";");
+                outputFile.Write(bv.Fecha + ";");       //ok
+                outputFile.Write(bv.NroBoleta + ";");   
+                outputFile.Write(bv.Username + ";");    //ok
                 outputFile.Write("" + ";");
-                outputFile.Write(bv.CodAutTbnk + ";");
-                outputFile.Write("" + ";"); //1
-                outputFile.Write(bv.Auxiliar + ";");
+                outputFile.Write(bv.CodAutTbnk + ";");  //Falta cod
+                outputFile.Write("" + ";");
+                outputFile.Write(bv.Auxiliar + ";");    //ok
                 outputFile.Write("" + ";"); //1
                 outputFile.Write("" + ";");
                 outputFile.Write("" + ";");
@@ -53,23 +53,23 @@ namespace Utils
                 outputFile.Write("" + ";");
                 outputFile.Write("" + ";");
                 outputFile.Write("" + ";"); //7
-                outputFile.Write(bv.Auxiliar + ";");
-                outputFile.Write("BL" + ";");
-                outputFile.Write(bv.NroBoleta + ";");
+                outputFile.Write(bv.Auxiliar + ";");    //ok
+                outputFile.Write("BL" + ";");           //ok
+                outputFile.Write(bv.NroBoleta + ";");   //Falta nro doc
                 outputFile.Write(bv.Fecha + ";");
                 outputFile.Write(bv.Fecha + ";");
                 outputFile.Write("BL" + ";");
-                outputFile.Write(bv.NroBoleta + ";");
+                outputFile.Write(bv.NroBoleta + ";");   //Falta nro doc
                 outputFile.Write("" + ";");
-                outputFile.Write(bv.MontoNeto + ";");
-                outputFile.Write("0" + ";");
-                outputFile.Write(bv.Iva + ";");
+                outputFile.Write(bv.MontoNeto + ";");   //ok
+                outputFile.Write(bv.Propina + ";");     //Falta propina (CORREGIDO)
+                outputFile.Write(bv.Iva + ";");         //ok
                 outputFile.Write("" + ";"); //1
                 outputFile.Write("" + ";");
                 outputFile.Write("" + ";");
                 outputFile.Write("" + ";");
                 outputFile.Write("" + ";"); //5
-                outputFile.WriteLine(bv.Total);
+                outputFile.WriteLine(bv.Total);         //ok
             }
         }
         public static void PrintDetailElements(string filePath, BoletaVenta bv, int index)
