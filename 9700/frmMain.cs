@@ -135,13 +135,14 @@ namespace _Simphony
 							"DISCOUNT_DETAIL DDET ON DDET.CHECKDETAILID = CD.CHECKDETAILID INNER JOIN DISCOUNT DDEF " +
 							"ON DDEF.DSCNTID = DDET.DSCNTID INNER JOIN STRING_TABLE ST ON ST.STRINGNUMBERID = DDEF.NAMEID " +
 							"WHERE CHECKID = '" + h.NroBoleta + "' ";
+                        //_log.W(sqlDisc);
                         var subCommandDisc = connection.CreateCommand();
                         subCommandDisc.CommandText = sqlDisc;
                         var subReaderDisc = subCommandDisc.ExecuteReader();
 
                         while (subReaderDisc.Read())
                         {
-                            var totalDescSinIva = subReaderDisc == null ? 0 : Convert.ToInt32(Math.Round(Convert.ToInt32(subReaderDisc[7]) / 1.19));
+                            var totalDescSinIva = Convert.ToInt32(Math.Round(Convert.ToInt32(subReaderDisc[7]) / 1.19));
                             var bvedd = new BoletaVenta()
                             {
                                 Cuenta = "22-22-222",
@@ -159,7 +160,7 @@ namespace _Simphony
                                 Iva = 0
                             };
 
-                            if (bvedd.Debe > 0) TxtFormatter.PrintDetailElements(path, bvedd, i);
+                            if (bvedd.Debe < 0) TxtFormatter.PrintDetailElements(path, bvedd, i);
                         }
 
                         subReaderDisc.Close();
