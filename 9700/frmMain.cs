@@ -179,21 +179,18 @@ namespace _Simphony
                         
                         while (subReaderChecks.Read())
                         {
-                            _log.W("1");
                             var journalText = subReaderChecks[10].ToString();
                             var journalTextItems = journalText.Split('\n').ToList();
 
-                            _log.W("2");
                             foreach (var linea in journalTextItems)
                             {
                                 _log.W(linea);
                             }
-                            _log.W("3");
+
                             var nroBoletaIndex = journalTextItems.FindIndex(s => s.ToUpper().Contains("NROBOLELEC"));
                             var codAutTransbankIndex = journalTextItems.FindIndex(s => s.ToUpper().Contains("CODAUTTBK"));
                             var totalSinIva = Convert.ToInt32(Math.Round(Convert.ToInt32(subReaderChecks[7]) / 1.19));
 
-                            _log.W("4");
                             nroBoleta = nroBoletaIndex > 0 ? journalTextItems[nroBoletaIndex + 1].Trim() : string.Empty;
                             glosa = "BL/" + nroBoleta + " " + h.Glosa.Split(' ')[1];
                             var bved = new BoletaVenta()
@@ -212,7 +209,7 @@ namespace _Simphony
                                 MontoNeto = 0,
                                 Iva = 0
                             };
-                            _log.W("5");
+
                             if (bved.Haber > 0)
                             {
                                 TxtFormatter.PrintDetailElements(path, bved, i);
@@ -233,7 +230,6 @@ namespace _Simphony
                                     Iva = 0
                                 };
                             }
-                            _log.W("6");
                         }
 
                         // IVA ----------------------------------------------------------------->
